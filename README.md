@@ -38,30 +38,44 @@ The repository includes two main Python scripts:
 ## Constraints
 
 The solution adheres to the following constraints:
+### Constraints
 
-1. Vehicles can only serve demand in their respective size and distance categories.
-2. Fleet composition must comply with **yearly carbon emission limits**.
-3. Vehicle purchase can only happen in the year the model is introduced, and each vehicle has a **10-year lifecycle**.
-4. The solution must meet **all yearly demand** for distance and size buckets.
+1. **Vehicle Size Matching**:
+   - Vehicles of size `Sx` can only fulfill demand in the same size bucket `Sx`.
 
-## How to Run the Project
+2. **Distance Bucket Compatibility**:
+   - A vehicle belonging to distance bucket `Dx` can satisfy all demands for distance buckets `D1` to `Dx`. For example:
+     - A vehicle in distance bucket `D4` can meet the demand for buckets `D1`, `D2`, `D3`, and `D4`.
+     - A vehicle in distance bucket `D3` can meet demand for `D1`, `D2`, and `D3` but **cannot** fulfill demand for `D4`.
 
-1. Clone the repository:
-    ```bash
-    git clone <repository_url>
-    ```
-2. Install the required dependencies:
-    ```bash
-    pip install -r requirements.txt
-    ```
-3. Run the main optimization code:
-    ```bash
-    python main.py
-    ```
-4. Validate the results:
-    ```bash
-    python Code_Validation.py
-    ```
+3. **Yearly Carbon Emission Limits**:
+   - Total yearly carbon emissions must remain within the respective yearly limits provided in `carbon_emissions.csv`. The total carbon emissions for a year are calculated using:
+
+Where:
+- `D_sv` = Distance traveled by vehicle type `v`
+- `N_v` = Number of vehicles of type `v`
+- `m_v` = Fuel consumption of vehicle type `v`
+- `CE_f` = Carbon emissions per unit of fuel `f`
+
+4. **Demand Fulfillment**:
+- The total yearly demand for each year must be satisfied for each distance and size bucket.
+
+5. **Vehicle Purchase Timing**:
+- Vehicles can only be purchased in the year they are introduced. For example, a vehicle model introduced in 2026 (e.g., `Diesel_S1_2026`) can only be purchased in 2026 and not in any previous or subsequent years.
+
+6. **Vehicle Lifecycle**:
+- Each vehicle has a **10-year lifecycle**. It must be sold at the end of its 10th year of operation. For example, a vehicle purchased in 2025 must be sold by the end of 2034.
+
+7. **Fleet Sale Limit**:
+- In any given year, no more than **20%** of the vehicles in the fleet can be sold.
+
+8. **Mid-Year Restrictions**:
+- No vehicles can be bought or sold mid-year. All vehicle purchases occur at the beginning of the year, and all sales happen at the end of the year.
+
+
+## Solution Strategy
+In order to solve the case study, I implemented a fleet optimization algorithm that dynamically managed vehicle usage, purchases, and sales while meeting yearly demand and staying within the emission limits. The code first evaluated existing vehicles to fulfill demand, prioritizing their use to minimize new purchases. If the current fleet couldn't meet the demand, it calculated cost and emissions impact of buying new vehicles. The vehicles are ensured with the compliance of 10 year age limit and 20% annual sales cap. Emission constraints were strictly monitored to prevent violations and cost factors were accurately calculated using detailed cost profiles. This approach ensures efficient fleet management within the given constraints.
+
 
 ## Outputs
 
@@ -74,20 +88,6 @@ The solution generates a CSV file with the following columns:
 - **Distance_bucket**: The distance range covered by the vehicle.
 - **Distance_per_vehicle (km)**: The distance each vehicle travels annually.
 
-## Objective
-
-The final objective of this optimization is to minimize the **total cost** of fleet ownership and operations across all the years, given by the formula:
-
-\[
-C_{total} = \sum (C_{buy} + C_{ins} + C_{mnt} + C_{fuel} - C_{sell})
-\]
-
-Where:
-- \( C_{buy} \) = Purchase cost of vehicles
-- \( C_{ins} \) = Insurance cost
-- \( C_{mnt} \) = Maintenance cost
-- \( C_{fuel} \) = Fuel cost
-- \( C_{sell} \) = Resale value of vehicles sold
 
 ## Evaluation
 
@@ -102,4 +102,4 @@ This project offers an optimal strategy for fleet decarbonization, balancing ope
 
 ---
 
-For further questions, feel free to raise an issue or contact us!
+For further questions, feel free to raise an issue or contact me!
